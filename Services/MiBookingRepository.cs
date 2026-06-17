@@ -1,4 +1,4 @@
-using MySqlConnector;
+using Npgsql;
 using TinMI.Models;
 
 namespace TinMI.Services;
@@ -9,24 +9,23 @@ public class MiBookingRepository
 
     public MiBookingRepository(IConfiguration configuration)
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Missing DefaultConnection connection string.");
+        _connectionString = GetPostgresConnectionString(configuration);
     }
 
     public async Task AddKhachHangAsync(KhachHang khachHang)
     {
         const string sql = """
-            INSERT INTO khachhang (TenKh, Sdt, NgayDK)
+            INSERT INTO khachhang (tenkh, sdt, ngaydk)
             VALUES (@tenKh, @sdt, @ngayDk);
             """;
 
-        await using var connection = new MySqlConnection(_connectionString);
+        await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
 
-        await using var command = new MySqlCommand(sql, connection);
-        command.Parameters.AddWithValue("@tenKh", khachHang.TenKh.Trim());
-        command.Parameters.AddWithValue("@sdt", khachHang.Sdt.Trim());
-        command.Parameters.AddWithValue("@ngayDk", khachHang.NgayDK);
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("tenKh", khachHang.TenKh.Trim());
+        command.Parameters.AddWithValue("sdt", khachHang.Sdt.Trim());
+        command.Parameters.AddWithValue("ngayDk", khachHang.NgayDK);
 
         await command.ExecuteNonQueryAsync();
     }
@@ -34,27 +33,27 @@ public class MiBookingRepository
     public async Task<IReadOnlyList<KhachHang>> GetKhachHangAsync()
     {
         const string sql = """
-            SELECT id, TenKh, Sdt, NgayDK
+            SELECT id, tenkh, sdt, ngaydk
             FROM khachhang
-            ORDER BY NgayDK DESC, id DESC;
+            ORDER BY ngaydk DESC, id DESC;
             """;
 
         var items = new List<KhachHang>();
 
-        await using var connection = new MySqlConnection(_connectionString);
+        await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
 
-        await using var command = new MySqlCommand(sql, connection);
+        await using var command = new NpgsqlCommand(sql, connection);
         await using var reader = await command.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
         {
             items.Add(new KhachHang
             {
-                Id = reader.GetInt32("id"),
-                TenKh = reader.GetString("TenKh"),
-                Sdt = reader.GetString("Sdt"),
-                NgayDK = reader.GetDateTime("NgayDK")
+                Id = reader.GetInt32(reader.GetOrdinal("id")),
+                TenKh = reader.GetString(reader.GetOrdinal("tenkh")),
+                Sdt = reader.GetString(reader.GetOrdinal("sdt")),
+                NgayDK = reader.GetDateTime(reader.GetOrdinal("ngaydk"))
             });
         }
 
@@ -64,18 +63,18 @@ public class MiBookingRepository
     public async Task<TaiKhoan?> FindTaiKhoanAsync(string user, string pass)
     {
         const string sql = """
-            SELECT id, user, pass
+            SELECT id, username, password
             FROM taikhoan
-            WHERE user = @user AND pass = @pass
+            WHERE username = @user AND password = @pass
             LIMIT 1;
             """;
 
-        await using var connection = new MySqlConnection(_connectionString);
+        await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
 
-        await using var command = new MySqlCommand(sql, connection);
-        command.Parameters.AddWithValue("@user", user.Trim());
-        command.Parameters.AddWithValue("@pass", pass);
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.AddWithValue("user", user.Trim());
+        command.Parameters.AddWithValue("pass", pass);
 
         await using var reader = await command.ExecuteReaderAsync();
         if (!await reader.ReadAsync())
@@ -85,9 +84,52 @@ public class MiBookingRepository
 
         return new TaiKhoan
         {
-            Id = reader.GetInt32("id"),
-            User = reader.GetString("user"),
-            Pass = reader.GetString("pass")
+            Id = reader.GetInt32(reader.GetOrdinal("id")),
+            User = reader.GetString(reader.GetOrdinal("username")),
+            Pass = reader.GetString(reader.GetOrdinal("password"))
         };
+    }
+
+    private static string GetPostgresConnectionString(IConfiguration configuration)
+    {
+        var configuredConnectionString = configuration.GetConnectionString("DefaultConnection");
+        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+        var rawConnectionString = !string.IsNullOrWhiteSpace(configuredConnectionString)
+            ? configuredConnectionString
+            : databaseUrl;
+
+        if (string.IsNullOrWhiteSpace(rawConnectionString))
+        {
+            throw new InvalidOperationException("Missing PostgreSQL connection string.");
+        }
+
+        if (rawConnectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+            rawConnectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            return ConvertDatabaseUrl(rawConnectionString);
+        }
+
+        return rawConnectionString;
+    }
+
+    private static string ConvertDatabaseUrl(string databaseUrl)
+    {
+        var uri = new Uri(databaseUrl);
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var username = Uri.UnescapeDataString(userInfo[0]);
+        var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty;
+        var database = uri.AbsolutePath.TrimStart('/');
+
+        var builder = new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.Port > 0 ? uri.Port : 5432,
+            Database = database,
+            Username = username,
+            Password = password,
+            SslMode = SslMode.Require
+        };
+
+        return builder.ConnectionString;
     }
 }

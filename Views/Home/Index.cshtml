@@ -3,26 +3,31 @@
 @{
     ViewData["Title"] = "Đăng ký làm mi";
     var minDate = DateTime.Today.ToString("yyyy-MM-dd");
-    var bookingTimes = ViewData["BookingTimes"] as string[] ?? [];
+    var selectedSession = ViewData["SelectedSession"] as string ?? "Sáng";
     var selectedTime = ViewData["SelectedTime"] as string ?? "09:00";
+    var showForm = !ViewData.ModelState.IsValid;
 }
 
 <section class="booking-hero">
     <div class="booking-copy">
         <p class="eyebrow">TinMI Lash Studio</p>
-        <h1>Đặt lịch làm mi nhanh gọn, không cần đăng nhập.</h1>
-        <p class="lead">Chọn ngày, chọn giờ phù hợp, để lại tên và số điện thoại. TinMI sẽ xem lịch và liên hệ xác nhận cho bạn.</p>
-    </div>
-
-    <form asp-action="Index" method="post" class="booking-form">
-        @Html.AntiForgeryToken()
-
-        <h2>Thông tin đặt lịch</h2>
+        <h1>Đặt lịch làm mi nhanh gọn</h1>
+        <p class="lead">Chọn ngày, chọn buổi và nhập giờ bạn muốn. TinMI sẽ xem lịch rồi liên hệ xác nhận cho bạn.</p>
 
         @if (TempData["SuccessMessage"] is string successMessage)
         {
-            <div class="alert alert-success" role="alert">@successMessage</div>
+            <div class="alert alert-success booking-alert" role="alert">@successMessage</div>
         }
+
+        <button type="button" class="btn btn-dark booking-open-button" id="openBookingForm">
+            Đặt lịch làm mi ngay
+        </button>
+    </div>
+
+    <form asp-action="Index" method="post" class="booking-form @(showForm ? "" : "booking-form-hidden")" id="bookingForm">
+        @Html.AntiForgeryToken()
+
+        <h2>Thông tin đặt lịch</h2>
 
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -38,21 +43,28 @@
             <span asp-validation-for="Sdt" class="text-danger"></span>
         </div>
 
-        <div class="mb-4">
+        <div class="mb-3">
             <label asp-for="NgayDK" class="form-label"></label>
             <input asp-for="NgayDK" type="date" class="form-control" min="@minDate" value="@Model.NgayDK.ToString("yyyy-MM-dd")" />
             <span asp-validation-for="NgayDK" class="text-danger"></span>
         </div>
 
+        <div class="mb-3">
+            <label class="form-label">Buổi làm mi</label>
+            <div class="session-choice" role="group" aria-label="Buổi làm mi">
+                <input type="radio" class="btn-check" name="buoiDK" id="sessionMorning" value="Sáng" checked="@(selectedSession != "Chiều")" />
+                <label class="btn btn-outline-dark" for="sessionMorning">Sáng</label>
+
+                <input type="radio" class="btn-check" name="buoiDK" id="sessionAfternoon" value="Chiều" checked="@(selectedSession == "Chiều")" />
+                <label class="btn btn-outline-dark" for="sessionAfternoon">Chiều</label>
+            </div>
+            @Html.ValidationMessage("buoiDK", null, new { @class = "text-danger" })
+        </div>
+
         <div class="mb-4">
-            <label for="gioDK" class="form-label">Giờ làm mi</label>
-            <select id="gioDK" name="gioDK" class="form-select">
-                <option value="">Chọn giờ</option>
-                @foreach (var time in bookingTimes)
-                {
-                    <option value="@time" selected="@(time == selectedTime)">@time</option>
-                }
-            </select>
+            <label for="gioDK" class="form-label">Giờ khách muốn</label>
+            <input id="gioDK" name="gioDK" type="time" class="form-control" value="@selectedTime" step="900" />
+            <div class="form-text">Sáng: 08:00-11:59. Chiều: 13:00-20:00.</div>
             @Html.ValidationMessage("gioDK", null, new { @class = "text-danger" })
         </div>
 
@@ -62,4 +74,17 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const openButton = document.getElementById('openBookingForm');
+            const form = document.getElementById('bookingForm');
+            const nameInput = document.getElementById('TenKh');
+
+            openButton?.addEventListener('click', () => {
+                form?.classList.remove('booking-form-hidden');
+                form?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                window.setTimeout(() => nameInput?.focus(), 350);
+            });
+        })();
+    </script>
 }

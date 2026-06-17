@@ -8,7 +8,7 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-select:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
@@ -33,7 +33,28 @@ body {
   gap: 48px;
   align-items: center;
   min-height: calc(100vh - 170px);
-  padding: 40px 0;
+  padding: 56px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-image: url("../images/tinmi-eyelash-bg.png");
+  background-position: center 28%;
+  background-size: cover;
+  border-radius: 8px;
+}
+
+.booking-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(18, 15, 13, .76), rgba(18, 15, 13, .34) 52%, rgba(18, 15, 13, .16)),
+    linear-gradient(0deg, rgba(251, 247, 242, .22), rgba(251, 247, 242, .04));
+}
+
+.booking-copy {
+  color: #fff;
 }
 
 .booking-copy h1,
@@ -51,11 +72,20 @@ body {
 
 .lead {
   max-width: 620px;
-  color: #5b5149;
+  color: rgba(255, 255, 255, .88);
+}
+
+.booking-alert {
+  max-width: 520px;
+}
+
+.booking-open-button {
+  margin-top: 12px;
+  min-width: 220px;
 }
 
 .eyebrow {
-  color: #9b5b35;
+  color: #f1d5bb;
   font-size: .82rem;
   font-weight: 700;
   letter-spacing: .08em;
@@ -82,10 +112,32 @@ body {
   margin-bottom: 22px;
 }
 
-.form-control {
+.booking-form-hidden {
+  display: none;
+}
+
+.form-control,
+.form-select {
   border-color: #dacdc1;
   border-radius: 6px;
   min-height: 46px;
+}
+
+.session-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.session-choice .btn {
+  align-content: center;
+  font-weight: 600;
+}
+
+.btn-check:checked + .btn {
+  background: #2f2823;
+  border-color: #2f2823;
+  color: #fff;
 }
 
 .btn {
@@ -137,6 +189,7 @@ body {
     grid-template-columns: 1fr;
     gap: 28px;
     min-height: auto;
+    padding: 32px;
   }
 
   .admin-header {
@@ -146,6 +199,11 @@ body {
 }
 
 @media (max-width: 575px) {
+  .booking-hero {
+    padding: 24px;
+    background-position: center top;
+  }
+
   .booking-form,
   .login-form {
     padding: 20px;

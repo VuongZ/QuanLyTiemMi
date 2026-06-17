@@ -11,9 +11,6 @@ D:\TinMi\TinMI\bin\Debug\net8.0\TinMI.deps.json
 D:\TinMi\TinMI\bin\Debug\net8.0\TinMI.runtimeconfig.json
 D:\TinMi\TinMI\bin\Debug\net8.0\TinMI.dll
 D:\TinMi\TinMI\bin\Debug\net8.0\TinMI.pdb
-D:\TinMi\TinMI\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
-D:\TinMi\TinMI\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
-D:\TinMi\TinMI\bin\Debug\net8.0\MySqlConnector.dll
 D:\TinMi\TinMI\obj\Debug\net8.0\TinMI.csproj.AssemblyReference.cache
 D:\TinMi\TinMI\obj\Debug\net8.0\rpswa.dswa.cache.json
 D:\TinMi\TinMI\obj\Debug\net8.0\TinMI.GeneratedMSBuildEditorConfig.editorconfig
@@ -40,3 +37,6 @@ D:\TinMi\TinMI\obj\Debug\net8.0\refint\TinMI.dll
 D:\TinMi\TinMI\obj\Debug\net8.0\TinMI.pdb
 D:\TinMi\TinMI\obj\Debug\net8.0\TinMI.genruntimeconfig.cache
 D:\TinMi\TinMI\obj\Debug\net8.0\ref\TinMI.dll
+D:\TinMi\TinMI\obj\Debug\net8.0\TinMI.sourcelink.json
+D:\TinMi\TinMI\bin\Debug\net8.0\Npgsql.dll
+D:\TinMi\TinMI\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll

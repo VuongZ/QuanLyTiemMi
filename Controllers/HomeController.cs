@@ -7,12 +7,6 @@ namespace TinMI.Controllers;
 
 public class HomeController : Controller
 {
-    private static readonly string[] BookingTimes =
-    [
-        "08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00",
-        "16:00", "17:00", "18:00", "19:00", "20:00"
-    ];
-
     private readonly ILogger<HomeController> _logger;
     private readonly MiBookingRepository _repository;
 
@@ -24,7 +18,7 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        ViewData["BookingTimes"] = BookingTimes;
+        ViewData["SelectedSession"] = "Sáng";
         ViewData["SelectedTime"] = "09:00";
 
         return View(new KhachHang
@@ -35,18 +29,36 @@ public class HomeController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Index(KhachHang khachHang, string? gioDK)
+    public async Task<IActionResult> Index(KhachHang khachHang, string? buoiDK, string? gioDK)
     {
-        ViewData["BookingTimes"] = BookingTimes;
+        ViewData["SelectedSession"] = buoiDK;
         ViewData["SelectedTime"] = gioDK;
 
-        if (string.IsNullOrWhiteSpace(gioDK) || !BookingTimes.Contains(gioDK))
+        var validSession = buoiDK is "Sáng" or "Chiều";
+        if (!validSession)
         {
-            ModelState.AddModelError("gioDK", "Vui lòng chọn giờ làm mi.");
+            ModelState.AddModelError("buoiDK", "Vui lòng chọn buổi làm mi.");
         }
-        else if (TimeSpan.TryParse(gioDK, out var time))
+
+        if (string.IsNullOrWhiteSpace(gioDK) || !TimeSpan.TryParse(gioDK, out var time))
+        {
+            ModelState.AddModelError("gioDK", "Vui lòng nhập giờ làm mi.");
+        }
+        else
         {
             khachHang.NgayDK = khachHang.NgayDK.Date.Add(time);
+
+            var isMorning = time >= TimeSpan.FromHours(8) && time < TimeSpan.FromHours(12);
+            var isAfternoon = time >= TimeSpan.FromHours(13) && time <= TimeSpan.FromHours(20);
+
+            if (buoiDK == "Sáng" && !isMorning)
+            {
+                ModelState.AddModelError("gioDK", "Buổi sáng nhận lịch từ 08:00 đến 11:59.");
+            }
+            else if (buoiDK == "Chiều" && !isAfternoon)
+            {
+                ModelState.AddModelError("gioDK", "Buổi chiều nhận lịch từ 13:00 đến 20:00.");
+            }
         }
 
         if (khachHang.NgayDK < DateTime.Now.AddMinutes(30))
