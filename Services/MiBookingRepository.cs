@@ -94,9 +94,12 @@ public class MiBookingRepository
     {
         var configuredConnectionString = configuration.GetConnectionString("DefaultConnection");
         var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-        var rawConnectionString = !string.IsNullOrWhiteSpace(configuredConnectionString)
-            ? configuredConnectionString
-            : databaseUrl;
+        var environmentConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        var rawConnectionString = !string.IsNullOrWhiteSpace(environmentConnectionString)
+            ? environmentConnectionString
+            : !string.IsNullOrWhiteSpace(databaseUrl)
+                ? databaseUrl
+                : configuredConnectionString;
 
         if (string.IsNullOrWhiteSpace(rawConnectionString))
         {
