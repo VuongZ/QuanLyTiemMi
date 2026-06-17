@@ -1,0 +1,54 @@
+@model IReadOnlyList<KhachHang>
+
+@{
+    ViewData["Title"] = "Danh sách đăng ký";
+}
+
+<section class="admin-header">
+    <div>
+        <p class="eyebrow">Quản lý lịch hẹn</p>
+        <h1>Danh sách đăng ký làm mi</h1>
+        <p class="text-muted mb-0">Tổng cộng @Model.Count lịch hẹn trong hệ thống.</p>
+    </div>
+
+    <form asp-action="Logout" method="post">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-dark">Đăng xuất</button>
+    </form>
+</section>
+
+<section class="table-shell">
+    @if (Model.Count == 0)
+    {
+        <div class="empty-state">
+            <h2>Chưa có lịch đăng ký</h2>
+            <p class="text-muted">Khi khách gửi form đặt lịch, thông tin sẽ xuất hiện tại đây.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Họ tên</th>
+                        <th>Số điện thoại</th>
+                        <th>Lịch làm mi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>@item.TenKh</td>
+                            <td><a href="tel:@item.Sdt">@item.Sdt</a></td>
+                            <td>@item.NgayDK.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

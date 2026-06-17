@@ -1,0 +1,65 @@
+@model KhachHang
+
+@{
+    ViewData["Title"] = "Đăng ký làm mi";
+    var minDate = DateTime.Today.ToString("yyyy-MM-dd");
+    var bookingTimes = ViewData["BookingTimes"] as string[] ?? [];
+    var selectedTime = ViewData["SelectedTime"] as string ?? "09:00";
+}
+
+<section class="booking-hero">
+    <div class="booking-copy">
+        <p class="eyebrow">TinMI Lash Studio</p>
+        <h1>Đặt lịch làm mi nhanh gọn, không cần đăng nhập.</h1>
+        <p class="lead">Chọn ngày, chọn giờ phù hợp, để lại tên và số điện thoại. TinMI sẽ xem lịch và liên hệ xác nhận cho bạn.</p>
+    </div>
+
+    <form asp-action="Index" method="post" class="booking-form">
+        @Html.AntiForgeryToken()
+
+        <h2>Thông tin đặt lịch</h2>
+
+        @if (TempData["SuccessMessage"] is string successMessage)
+        {
+            <div class="alert alert-success" role="alert">@successMessage</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="TenKh" class="form-label"></label>
+            <input asp-for="TenKh" class="form-control" placeholder="Ví dụ: Nguyễn Thanh Mi" autocomplete="name" />
+            <span asp-validation-for="TenKh" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Sdt" class="form-label"></label>
+            <input asp-for="Sdt" class="form-control" placeholder="Ví dụ: 0901234567" autocomplete="tel" />
+            <span asp-validation-for="Sdt" class="text-danger"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="NgayDK" class="form-label"></label>
+            <input asp-for="NgayDK" type="date" class="form-control" min="@minDate" value="@Model.NgayDK.ToString("yyyy-MM-dd")" />
+            <span asp-validation-for="NgayDK" class="text-danger"></span>
+        </div>
+
+        <div class="mb-4">
+            <label for="gioDK" class="form-label">Giờ làm mi</label>
+            <select id="gioDK" name="gioDK" class="form-select">
+                <option value="">Chọn giờ</option>
+                @foreach (var time in bookingTimes)
+                {
+                    <option value="@time" selected="@(time == selectedTime)">@time</option>
+                }
+            </select>
+            @Html.ValidationMessage("gioDK", null, new { @class = "text-danger" })
+        </div>
+
+        <button type="submit" class="btn btn-dark w-100">Gửi đăng ký</button>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
