@@ -2,8 +2,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 COPY . .
-RUN dotnet restore ./TinMI/TinMI.csproj
-RUN dotnet publish ./TinMI/TinMI.csproj -c Release -o /app/publish
+RUN dotnet restore ./TinMI.csproj
+RUN dotnet publish ./TinMI.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
