@@ -96,20 +96,35 @@ public class BookingEmailService
         var smtpSettings = _configuration.GetSection("SmtpSettings");
         var emailSettings = _configuration.GetSection("Email");
 
+        var host = Read(smtpSettings, emailSettings, "Host");
+        var port = ReadInt(smtpSettings, emailSettings, "Port", 587);
+        var useSsl = ReadBool(smtpSettings, emailSettings, "UseSsl", "EnableSsl", true);
         var fromEmail = Read(smtpSettings, emailSettings, "FromEmail", "From");
         var toEmail = Read(smtpSettings, emailSettings, "ToEmail", "To");
 
+        if (IsGmailSmtp(host, port) && !useSsl)
+        {
+            _logger.LogWarning("Gmail SMTP on port {Port} requires SSL/STARTTLS. Forcing SSL on.", port);
+            useSsl = true;
+        }
+
         return new EmailSettings
         {
-            Host = Read(smtpSettings, emailSettings, "Host"),
-            Port = ReadInt(smtpSettings, emailSettings, "Port", 587),
-            UseSsl = ReadBool(smtpSettings, emailSettings, "UseSsl", "EnableSsl", true),
+            Host = host,
+            Port = port,
+            UseSsl = useSsl,
             Username = Read(smtpSettings, emailSettings, "Username", "UserName"),
             Password = Read(smtpSettings, emailSettings, "Password"),
             FromEmail = fromEmail,
             FromName = Read(smtpSettings, emailSettings, "FromName"),
             ToEmail = string.IsNullOrWhiteSpace(toEmail) ? fromEmail : toEmail
         };
+    }
+
+    private static bool IsGmailSmtp(string? host, int port)
+    {
+        return host?.Equals("smtp.gmail.com", StringComparison.OrdinalIgnoreCase) == true &&
+            port is 465 or 587;
     }
 
     private static string? Read(IConfigurationSection primary, IConfigurationSection fallback, string primaryKey, string? fallbackKey = null)
