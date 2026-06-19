@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Net.Mail;
 using TinMI.Models;
 
@@ -7,11 +9,16 @@ namespace TinMI.Services;
 public class BookingEmailService
 {
     private readonly IConfiguration _configuration;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<BookingEmailService> _logger;
 
-    public BookingEmailService(IConfiguration configuration, ILogger<BookingEmailService> logger)
+    public BookingEmailService(
+        IConfiguration configuration,
+        IHttpClientFactory httpClientFactory,
+        ILogger<BookingEmailService> logger)
     {
         _configuration = configuration;
+        _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
@@ -29,7 +36,78 @@ public class BookingEmailService
 
     public async Task<bool> SendBookingCreatedAsync(KhachHang khachHang)
     {
-        var settings = GetEmailSettings();
+        var resendSettings = GetResendSettings();
+        if (!string.IsNullOrWhiteSpace(resendSettings.ApiKey))
+        {
+            return await SendWithResendAsync(khachHang, resendSettings);
+        }
+
+        return await SendWithSmtpAsync(khachHang);
+    }
+
+    private async Task<bool> SendWithResendAsync(KhachHang khachHang, ResendSettings settings)
+    {
+        if (string.IsNullOrWhiteSpace(settings.FromEmail) || string.IsNullOrWhiteSpace(settings.ToEmail))
+        {
+            _logger.LogWarning("Resend settings are incomplete. Email was skipped.");
+            return false;
+        }
+
+        var from = string.IsNullOrWhiteSpace(settings.FromName)
+            ? settings.FromEmail
+            : $"{settings.FromName} <{settings.FromEmail}>";
+
+        var payload = new
+        {
+            from,
+            to = new[] { settings.ToEmail },
+            subject = "TinMI có lịch làm mi mới",
+            html = $"""
+                <p>Khách vừa đặt lịch làm mi.</p>
+                <p><strong>Họ tên:</strong> {WebUtility.HtmlEncode(khachHang.TenKh)}</p>
+                <p><strong>Số điện thoại:</strong> {WebUtility.HtmlEncode(khachHang.Sdt)}</p>
+                <p><strong>Lịch làm mi:</strong> {khachHang.NgayDK:dd/MM/yyyy HH:mm}</p>
+                """,
+            text = $"""
+                Khách vừa đặt lịch làm mi.
+
+                Họ tên: {khachHang.TenKh}
+                Số điện thoại: {khachHang.Sdt}
+                Lịch làm mi: {khachHang.NgayDK:dd/MM/yyyy HH:mm}
+                """
+        };
+
+        try
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(15);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
+
+            var response = await client.PostAsJsonAsync("https://api.resend.com/emails", payload);
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Resend email sent to {ToEmail}. Response: {Response}", settings.ToEmail, body);
+                return true;
+            }
+
+            _logger.LogWarning(
+                "Could not send Resend email. Status={StatusCode}. Response={Response}",
+                (int)response.StatusCode,
+                body);
+            return false;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(exception, "Could not send Resend email. Booking was still saved.");
+            return false;
+        }
+    }
+
+    private async Task<bool> SendWithSmtpAsync(KhachHang khachHang)
+    {
+        var settings = GetSmtpSettings();
 
         _logger.LogInformation(
             "SMTP config: host={Host}, port={Port}, ssl={UseSsl}, usernameSet={UsernameSet}, passwordSet={PasswordSet}, from={FromEmail}, to={ToEmail}",
@@ -101,7 +179,24 @@ public class BookingEmailService
         }
     }
 
-    private EmailSettings GetEmailSettings()
+    private ResendSettings GetResendSettings()
+    {
+        var section = _configuration.GetSection("Resend");
+        var smtpSection = _configuration.GetSection("SmtpSettings");
+        var emailSection = _configuration.GetSection("Email");
+        var fromEmail = section["FromEmail"] ?? Read(smtpSection, emailSection, "FromEmail", "From");
+        var toEmail = section["ToEmail"] ?? Read(smtpSection, emailSection, "ToEmail", "To");
+
+        return new ResendSettings
+        {
+            ApiKey = section["ApiKey"],
+            FromEmail = fromEmail,
+            FromName = section["FromName"] ?? Read(smtpSection, emailSection, "FromName"),
+            ToEmail = string.IsNullOrWhiteSpace(toEmail) ? fromEmail : toEmail
+        };
+    }
+
+    private EmailSettings GetSmtpSettings()
     {
         var smtpSettings = _configuration.GetSection("SmtpSettings");
         var emailSettings = _configuration.GetSection("Email");
@@ -164,6 +259,14 @@ public class BookingEmailService
         public bool UseSsl { get; init; }
         public string? Username { get; init; }
         public string? Password { get; init; }
+        public string? FromEmail { get; init; }
+        public string? FromName { get; init; }
+        public string? ToEmail { get; init; }
+    }
+
+    private sealed class ResendSettings
+    {
+        public string? ApiKey { get; init; }
         public string? FromEmail { get; init; }
         public string? FromName { get; init; }
         public string? ToEmail { get; init; }
