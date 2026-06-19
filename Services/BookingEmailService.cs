@@ -49,7 +49,8 @@ public class BookingEmailService
 
             using var client = new SmtpClient(settings.Host, settings.Port)
             {
-                EnableSsl = settings.UseSsl
+                EnableSsl = settings.UseSsl,
+                Timeout = 10000
             };
 
             if (!string.IsNullOrWhiteSpace(settings.Username) && !string.IsNullOrWhiteSpace(settings.Password))
@@ -62,7 +63,7 @@ public class BookingEmailService
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "Could not send booking email.");
+            _logger.LogWarning("Could not send booking email. Booking was still saved. SMTP error: {Message}", exception.Message);
         }
     }
 

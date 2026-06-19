@@ -8,3 +8,47 @@ info: Microsoft.Hosting.Lifetime[0]
       Hosting environment: Development
 info: Microsoft.Hosting.Lifetime[0]
       Content root path: D:\TinMi\TinMI
+warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
+      Failed to determine the https port for redirect.
+fail: TinMI.Controllers.HomeController[0]
+      Could not load booked slots.
+      Npgsql.PostgresException (0x80004005): 3D000: database "mithutin" does not exist
+         at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+         at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+         at Npgsql.Internal.NpgsqlConnector.<Open>g__OpenCore|209_0(NpgsqlConnector conn, String username, SslMode sslMode, GssEncryptionMode gssEncMode, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.Internal.NpgsqlConnector.Open(NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.PoolingDataSource.OpenNewConnector(NpgsqlConnection conn, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.PoolingDataSource.<Get>g__RentAsync|33_0(NpgsqlConnection conn, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.NpgsqlConnection.<Open>g__OpenAsync|42_0(Boolean async, CancellationToken cancellationToken)
+         at TinMI.Services.MiBookingRepository.EnsureSchemaAsync() in D:\TinMi\TinMI\Services\MiBookingRepository.cs:line 167
+         at TinMI.Services.MiBookingRepository.EnsureSchemaAsync() in D:\TinMi\TinMI\Services\MiBookingRepository.cs:line 170
+         at TinMI.Services.MiBookingRepository.GetBookingTimesByDateAsync(DateTime date) in D:\TinMi\TinMI\Services\MiBookingRepository.cs:line 84
+         at TinMI.Controllers.HomeController.BuildSlotsAsync(DateTime date) in D:\TinMi\TinMI\Controllers\HomeController.cs:line 131
+        Exception data:
+          Severity: FATAL
+          SqlState: 3D000
+          MessageText: database "mithutin" does not exist
+          File: postinit.c
+          Line: 1016
+          Routine: InitPostgres
+fail: TinMI.Controllers.HomeController[0]
+      Could not load booked slots.
+      Npgsql.PostgresException (0x80004005): 3D000: database "mithutin" does not exist
+         at Npgsql.Internal.NpgsqlConnector.ReadMessageLong(Boolean async, DataRowLoadingMode dataRowLoadingMode, Boolean readingNotifications, Boolean isReadingPrependedMessage)
+         at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+         at Npgsql.Internal.NpgsqlConnector.<Open>g__OpenCore|209_0(NpgsqlConnector conn, String username, SslMode sslMode, GssEncryptionMode gssEncMode, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.Internal.NpgsqlConnector.Open(NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.PoolingDataSource.OpenNewConnector(NpgsqlConnection conn, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.PoolingDataSource.<Get>g__RentAsync|33_0(NpgsqlConnection conn, NpgsqlTimeout timeout, Boolean async, CancellationToken cancellationToken)
+         at Npgsql.NpgsqlConnection.<Open>g__OpenAsync|42_0(Boolean async, CancellationToken cancellationToken)
+         at TinMI.Services.MiBookingRepository.EnsureSchemaAsync() in D:\TinMi\TinMI\Services\MiBookingRepository.cs:line 167
+         at TinMI.Services.MiBookingRepository.EnsureSchemaAsync() in D:\TinMi\TinMI\Services\MiBookingRepository.cs:line 170
+         at TinMI.Services.MiBookingRepository.GetBookingTimesByDateAsync(DateTime date) in D:\TinMi\TinMI\Services\MiBookingRepository.cs:line 84
+         at TinMI.Controllers.HomeController.BuildSlotsAsync(DateTime date) in D:\TinMi\TinMI\Controllers\HomeController.cs:line 131
+        Exception data:
+          Severity: FATAL
+          SqlState: 3D000
+          MessageText: database "mithutin" does not exist
+          File: postinit.c
+          Line: 1016
+          Routine: InitPostgres

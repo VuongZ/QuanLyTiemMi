@@ -8,6 +8,7 @@ namespace TinMI.Controllers;
 public class HomeController : Controller
 {
     private static readonly TimeSpan BookingDuration = TimeSpan.FromHours(2);
+    private static readonly TimeSpan BookingBufferBefore = TimeSpan.FromHours(1);
     private static readonly TimeSpan[] SlotTimes =
     [
         new(8, 0, 0),
@@ -97,7 +98,14 @@ public class HomeController : Controller
         }
 
         await _repository.AddKhachHangAsync(khachHang);
-        await _emailService.SendBookingCreatedAsync(khachHang);
+        try
+        {
+            await _emailService.SendBookingCreatedAsync(khachHang);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(exception, "Booking was saved, but the notification email could not be sent.");
+        }
 
         TempData["SuccessMessage"] = "Đặt lịch thành công. TinMI sẽ liên hệ xác nhận sớm nhất.";
 
@@ -134,8 +142,9 @@ public class HomeController : Controller
                 var start = date.Date.Add(time);
                 var isBooked = bookedTimes.Any(booked =>
                 {
+                    var blockedStart = booked.Subtract(BookingBufferBefore);
                     var bookedEnd = booked.Add(BookingDuration);
-                    return start >= booked && start < bookedEnd;
+                    return start >= blockedStart && start < bookedEnd;
                 });
 
                 return new BookingSlotViewModel
