@@ -192,7 +192,7 @@ public class MiBookingRepository
             return ConvertDatabaseUrl(rawConnectionString);
         }
 
-        return rawConnectionString;
+        return NormalizeConnectionString(rawConnectionString);
     }
 
     private static string ConvertDatabaseUrl(string databaseUrl)
@@ -210,7 +210,18 @@ public class MiBookingRepository
             Database = database,
             Username = username,
             Password = password,
-            SslMode = SslMode.Require
+            SslMode = SslMode.Require,
+            GssEncryptionMode = GssEncryptionMode.Disable
+        };
+
+        return builder.ConnectionString;
+    }
+
+    private static string NormalizeConnectionString(string connectionString)
+    {
+        var builder = new NpgsqlConnectionStringBuilder(connectionString)
+        {
+            GssEncryptionMode = GssEncryptionMode.Disable
         };
 
         return builder.ConnectionString;

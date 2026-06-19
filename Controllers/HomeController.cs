@@ -132,11 +132,10 @@ public class HomeController : Controller
             .Select(time =>
             {
                 var start = date.Date.Add(time);
-                var end = start.Add(BookingDuration);
                 var isBooked = bookedTimes.Any(booked =>
                 {
                     var bookedEnd = booked.Add(BookingDuration);
-                    return start < bookedEnd && booked < end;
+                    return start >= booked && start < bookedEnd;
                 });
 
                 return new BookingSlotViewModel
