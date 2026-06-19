@@ -3,16 +3,16 @@
 @{
     ViewData["Title"] = "Đăng ký làm mi";
     var minDate = DateTime.Today.ToString("yyyy-MM-dd");
-    var selectedSession = ViewData["SelectedSession"] as string ?? "Sáng";
     var selectedTime = ViewData["SelectedTime"] as string ?? "09:00";
     var showForm = !ViewData.ModelState.IsValid;
+    var slots = ViewData["Slots"] as IReadOnlyList<BookingSlotViewModel> ?? [];
 }
 
 <section class="booking-hero">
     <div class="booking-copy">
         <p class="eyebrow">TinMI Lash Studio</p>
         <h1>Đặt lịch làm mi nhanh gọn</h1>
-        <p class="lead">Chọn ngày, chọn buổi và nhập giờ bạn muốn. TinMI sẽ xem lịch rồi liên hệ xác nhận cho bạn.</p>
+        <p class="lead">Mỗi lịch làm mi giữ chỗ trong 2 tiếng. Những giờ đã trùng lịch sẽ tự tối đi để bạn chọn giờ còn trống.</p>
 
         @if (TempData["SuccessMessage"] is string successMessage)
         {
@@ -45,26 +45,35 @@
 
         <div class="mb-3">
             <label asp-for="NgayDK" class="form-label"></label>
-            <input asp-for="NgayDK" type="date" class="form-control" min="@minDate" value="@Model.NgayDK.ToString("yyyy-MM-dd")" />
+            <input asp-for="NgayDK" type="date" class="form-control" id="bookingDate" min="@minDate" value="@Model.NgayDK.ToString("yyyy-MM-dd")" />
             <span asp-validation-for="NgayDK" class="text-danger"></span>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Buổi làm mi</label>
-            <div class="session-choice" role="group" aria-label="Buổi làm mi">
-                <input type="radio" class="btn-check" name="buoiDK" id="sessionMorning" value="Sáng" checked="@(selectedSession != "Chiều")" />
-                <label class="btn btn-outline-dark" for="sessionMorning">Sáng</label>
-
-                <input type="radio" class="btn-check" name="buoiDK" id="sessionAfternoon" value="Chiều" checked="@(selectedSession == "Chiều")" />
-                <label class="btn btn-outline-dark" for="sessionAfternoon">Chiều</label>
-            </div>
-            @Html.ValidationMessage("buoiDK", null, new { @class = "text-danger" })
-        </div>
-
         <div class="mb-4">
-            <label for="gioDK" class="form-label">Giờ khách muốn</label>
-            <input id="gioDK" name="gioDK" type="time" class="form-control" value="@selectedTime" step="900" />
-            <div class="form-text">Sáng: 08:00-11:59. Chiều: 13:00-20:00.</div>
+            <label class="form-label">Bảng chọn giờ</label>
+            <input type="hidden" name="gioDK" id="gioDK" value="@selectedTime" />
+            <div class="slot-board" id="slotBoard">
+                @foreach (var group in slots.GroupBy(slot => slot.Session))
+                {
+                    <div class="slot-section">
+                        <p class="slot-section-title">@group.Key</p>
+                        <div class="slot-grid">
+                            @foreach (var slot in group)
+                            {
+                                var isSelected = slot.Time == selectedTime && slot.IsAvailable;
+                                <button
+                                    type="button"
+                                    class="slot-button @(slot.IsAvailable ? "" : "slot-button-booked") @(isSelected ? "slot-button-selected" : "")"
+                                    data-time="@slot.Time"
+                                    disabled="@(!slot.IsAvailable)">
+                                    @slot.Label
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="form-text">Mỗi lịch kéo dài 2 tiếng. Giờ tối là giờ đã có khách hoặc bị trùng lịch.</div>
             @Html.ValidationMessage("gioDK", null, new { @class = "text-danger" })
         </div>
 
@@ -79,11 +88,70 @@
             const openButton = document.getElementById('openBookingForm');
             const form = document.getElementById('bookingForm');
             const nameInput = document.getElementById('TenKh');
+            const dateInput = document.getElementById('bookingDate');
+            const slotBoard = document.getElementById('slotBoard');
+            const selectedTimeInput = document.getElementById('gioDK');
 
-            openButton?.addEventListener('click', () => {
+            const openForm = () => {
                 form?.classList.remove('booking-form-hidden');
                 form?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 window.setTimeout(() => nameInput?.focus(), 350);
+            };
+
+            const selectSlot = (button) => {
+                if (!button || button.disabled) return;
+                selectedTimeInput.value = button.dataset.time || '';
+                slotBoard.querySelectorAll('.slot-button-selected').forEach((item) => {
+                    item.classList.remove('slot-button-selected');
+                });
+                button.classList.add('slot-button-selected');
+            };
+
+            const bindSlotButtons = () => {
+                slotBoard.querySelectorAll('.slot-button').forEach((button) => {
+                    button.addEventListener('click', () => selectSlot(button));
+                });
+            };
+
+            const renderSlots = (slots) => {
+                const groups = slots.reduce((result, slot) => {
+                    result[slot.session] = result[slot.session] || [];
+                    result[slot.session].push(slot);
+                    return result;
+                }, {});
+
+                slotBoard.innerHTML = Object.entries(groups).map(([session, items]) => `
+                    <div class="slot-section">
+                        <p class="slot-section-title">${session}</p>
+                        <div class="slot-grid">
+                            ${items.map((slot) => `
+                                <button
+                                    type="button"
+                                    class="slot-button ${slot.isAvailable ? '' : 'slot-button-booked'}"
+                                    data-time="${slot.time}"
+                                    ${slot.isAvailable ? '' : 'disabled'}>
+                                    ${slot.label}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+
+                const firstAvailable = slotBoard.querySelector('.slot-button:not(:disabled)');
+                selectedTimeInput.value = firstAvailable?.dataset.time || '';
+                if (firstAvailable) {
+                    firstAvailable.classList.add('slot-button-selected');
+                }
+                bindSlotButtons();
+            };
+
+            openButton?.addEventListener('click', openForm);
+            bindSlotButtons();
+
+            dateInput?.addEventListener('change', async () => {
+                selectedTimeInput.value = '';
+                const response = await fetch(`/Home/Slots?date=${dateInput.value}`);
+                renderSlots(await response.json());
             });
         })();
     </script>

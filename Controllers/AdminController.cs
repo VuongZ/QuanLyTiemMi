@@ -24,6 +24,16 @@ public class AdminController : Controller
         return View(khachHang);
     }
 
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _repository.DeleteKhachHangAsync(id);
+        TempData["SuccessMessage"] = "Đã xóa lịch đăng ký.";
+        return RedirectToAction(nameof(Index));
+    }
+
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {

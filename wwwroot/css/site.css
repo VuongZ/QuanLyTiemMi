@@ -116,6 +116,49 @@ body {
   display: none;
 }
 
+.slot-board {
+  display: grid;
+  gap: 16px;
+}
+
+.slot-section-title {
+  color: #5b5149;
+  font-size: .88rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.slot-button {
+  min-height: 42px;
+  border: 1px solid #cbbbab;
+  border-radius: 6px;
+  background: #fffaf5;
+  color: #1f1c1a;
+  font-weight: 700;
+}
+
+.slot-button:hover:not(:disabled),
+.slot-button-selected {
+  border-color: #2f2823;
+  background: #2f2823;
+  color: #fff;
+}
+
+.slot-button-booked,
+.slot-button:disabled {
+  border-color: #3a3532;
+  background: #3a3532;
+  color: rgba(255, 255, 255, .45);
+  cursor: not-allowed;
+  opacity: .92;
+}
+
 .form-control,
 .form-select {
   border-color: #dacdc1;
@@ -202,6 +245,10 @@ body {
   .booking-hero {
     padding: 24px;
     background-position: center top;
+  }
+
+  .slot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .booking-form,

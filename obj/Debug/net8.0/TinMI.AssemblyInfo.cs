@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TinMI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f8e6422e014c0178077a77046d4d9400fdfa7614")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+521a9c01fd1abf8928d6fe6748fe35d31edb8b3c")]
 [assembly: System.Reflection.AssemblyProductAttribute("TinMI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TinMI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
