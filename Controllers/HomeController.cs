@@ -19,7 +19,9 @@ public class HomeController : Controller
         new(15, 0, 0),
         new(16, 0, 0),
         new(17, 0, 0),
-        new(18, 0, 0)
+        new(18, 0, 0),
+        new(19, 0, 0),
+        new(20, 0, 0)
     ];
 
     private readonly ILogger<HomeController> _logger;
