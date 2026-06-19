@@ -11,10 +11,12 @@ namespace TinMI.Controllers;
 public class AdminController : Controller
 {
     private readonly MiBookingRepository _repository;
+    private readonly BookingEmailService _emailService;
 
-    public AdminController(MiBookingRepository repository)
+    public AdminController(MiBookingRepository repository, BookingEmailService emailService)
     {
         _repository = repository;
+        _emailService = emailService;
     }
 
     [Authorize]
@@ -31,6 +33,19 @@ public class AdminController : Controller
     {
         await _repository.DeleteKhachHangAsync(id);
         TempData["SuccessMessage"] = "Đã xóa lịch đăng ký.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> TestEmail()
+    {
+        var sent = await _emailService.SendTestEmailAsync();
+        TempData[sent ? "SuccessMessage" : "ErrorMessage"] = sent
+            ? "Đã gửi mail test thành công."
+            : "Không gửi được mail test. Kiểm tra Render logs để xem host/port/tài khoản SMTP.";
+
         return RedirectToAction(nameof(Index));
     }
 

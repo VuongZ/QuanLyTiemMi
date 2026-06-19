@@ -98,14 +98,26 @@ public class HomeController : Controller
         }
 
         await _repository.AddKhachHangAsync(khachHang);
-        try
+
+        var emailBooking = new KhachHang
         {
-            await _emailService.SendBookingCreatedAsync(khachHang);
-        }
-        catch (Exception exception)
+            Id = khachHang.Id,
+            TenKh = khachHang.TenKh,
+            Sdt = khachHang.Sdt,
+            NgayDK = khachHang.NgayDK
+        };
+
+        _ = Task.Run(async () =>
         {
-            _logger.LogWarning(exception, "Booking was saved, but the notification email could not be sent.");
-        }
+            try
+            {
+                await _emailService.SendBookingCreatedAsync(emailBooking);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogWarning(exception, "Booking was saved, but the notification email could not be sent.");
+            }
+        });
 
         TempData["SuccessMessage"] = "Đặt lịch thành công. TinMI sẽ liên hệ xác nhận sớm nhất.";
 

@@ -11,15 +11,27 @@
         <p class="text-muted mb-0">Tổng cộng @Model.Count lịch hẹn trong hệ thống.</p>
     </div>
 
-    <form asp-action="Logout" method="post">
-        @Html.AntiForgeryToken()
-        <button type="submit" class="btn btn-outline-dark">Đăng xuất</button>
-    </form>
+    <div class="admin-actions">
+        <form asp-action="TestEmail" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-dark">Gửi mail test</button>
+        </form>
+
+        <form asp-action="Logout" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-dark">Đăng xuất</button>
+        </form>
+    </div>
 </section>
 
 @if (TempData["SuccessMessage"] is string successMessage)
 {
     <div class="alert alert-success" role="alert">@successMessage</div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger" role="alert">@errorMessage</div>
 }
 
 <section class="table-shell">

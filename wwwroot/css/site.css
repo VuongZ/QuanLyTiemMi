@@ -207,6 +207,13 @@ body {
   padding: 32px 0 24px;
 }
 
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .table-shell {
   overflow: hidden;
 }
@@ -238,6 +245,10 @@ body {
   .admin-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .admin-actions {
+    justify-content: flex-start;
   }
 }
 

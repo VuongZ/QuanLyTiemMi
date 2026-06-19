@@ -15,16 +15,38 @@ public class BookingEmailService
         _logger = logger;
     }
 
-    public async Task SendBookingCreatedAsync(KhachHang khachHang)
+    public Task<bool> SendTestEmailAsync()
+    {
+        var testBooking = new KhachHang
+        {
+            TenKh = "TinMI Test",
+            Sdt = "0000000000",
+            NgayDK = DateTime.Now
+        };
+
+        return SendBookingCreatedAsync(testBooking);
+    }
+
+    public async Task<bool> SendBookingCreatedAsync(KhachHang khachHang)
     {
         var settings = GetEmailSettings();
+
+        _logger.LogInformation(
+            "SMTP config: host={Host}, port={Port}, ssl={UseSsl}, usernameSet={UsernameSet}, passwordSet={PasswordSet}, from={FromEmail}, to={ToEmail}",
+            settings.Host,
+            settings.Port,
+            settings.UseSsl,
+            !string.IsNullOrWhiteSpace(settings.Username),
+            !string.IsNullOrWhiteSpace(settings.Password),
+            settings.FromEmail,
+            settings.ToEmail);
 
         if (string.IsNullOrWhiteSpace(settings.Host) ||
             string.IsNullOrWhiteSpace(settings.FromEmail) ||
             string.IsNullOrWhiteSpace(settings.ToEmail))
         {
             _logger.LogWarning("SMTP settings are incomplete. Booking email was skipped.");
-            return;
+            return false;
         }
 
         try
@@ -60,10 +82,12 @@ public class BookingEmailService
 
             await client.SendMailAsync(message);
             _logger.LogInformation("Booking email was sent to {ToEmail}.", settings.ToEmail);
+            return true;
         }
         catch (Exception exception)
         {
             _logger.LogWarning("Could not send booking email. Booking was still saved. SMTP error: {Message}", exception.Message);
+            return false;
         }
     }
 
